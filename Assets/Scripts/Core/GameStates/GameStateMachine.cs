@@ -26,10 +26,6 @@ public class GameStateMachine : AbstractSingletonBehaviour<GameStateMachine, Gam
 		}
 	}
 
-	private void Start() {
-		GoToState(StateTypes.MainMenu);
-	}
-
 	public void GoToState(StateTypes state) {
 		StartCoroutine(ChangeState(state));
 	}
@@ -60,10 +56,11 @@ public class GameStateMachine : AbstractSingletonBehaviour<GameStateMachine, Gam
 			yield return null;
 
 			CurrentStateObject = Instantiate(statePrefab);
+			CurrentStateObject.transform.parent = transform;
 			CurrentStateObject.Activate();
 			CurrentState = state;
 
-			Debug.LogFormat("Loaded new state {0}", CurrentStateObject != null ? CurrentStateObject.Type : StateTypes.Unknown);
+			//Debug.LogFormat("Loaded new state {0}", CurrentStateObject != null ? CurrentStateObject.Type : StateTypes.Unknown);
 
 			OnStateChanged(state, previousState);
 		} else {

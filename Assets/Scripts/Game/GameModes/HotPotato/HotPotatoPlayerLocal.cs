@@ -1,16 +1,23 @@
 ﻿using UnityEngine;
 
-public class PlayerLocal : PlayerBase {
+public class HotPotatoPlayerLocal : HotPotatoPlayerBase {
 	[System.Serializable]
 	public class KeyboardConfig {
 		public KeyCode MoveUp = KeyCode.UpArrow;
 		public KeyCode MoveDown = KeyCode.DownArrow;
 		public KeyCode MoveLeft = KeyCode.LeftArrow;
 		public KeyCode MoveRight = KeyCode.RightArrow;
+		public KeyCode DoAction = KeyCode.RightControl;
 	}
 
 	[SerializeField]
 	private KeyboardConfig keyboardControls = null;
+
+	public override string PlayerName {
+		get {
+			return "Player #" + PlayerGameId;
+		}
+	}
 
 	protected override void Update() {
 		base.Update();
@@ -33,6 +40,10 @@ public class PlayerLocal : PlayerBase {
 		if (Input.GetKey(keyboardControls.MoveRight)) {
 			direction.x += 1f;
 			isControlled = true;
+		}
+
+		if (Input.GetKeyDown(keyboardControls.DoAction)) {
+			DoAction();
 		}
 
 		if (isControlled) {
