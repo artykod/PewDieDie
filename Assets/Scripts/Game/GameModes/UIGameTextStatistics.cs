@@ -28,7 +28,7 @@ public class UIGameTextStatistics : MonoBehaviour {
 	}
 	public void RefreshResultsStats(GameStateModeHotPotato.PlayerStatistics[] playersStats) {
 		var list = new List<GameStateModeHotPotato.PlayerStatistics>(playersStats);
-		list.Sort((a, b) => a.points > b.points ? -1 : (a.points < b.points ? 1 : a.coins >= b.coins ? -1 : 1));
+		list.Sort((a, b) => a.points == b.points ? (a.coins > b.coins ? -1 : 1) : (a.points > b.points ? -1 : 1));
 
 		for (int i = 0, l = Mathf.Min(list.Count, 4); i < l; i++) {
 			var player = list.Count > i ? list[i] : null;
