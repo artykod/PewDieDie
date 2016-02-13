@@ -71,10 +71,11 @@ public class GameStateModeHotPotato : GameStateModeBase {
 	}
 
 	private void OnCoinCollectedByPlayer(HotPotatoPlayerBase player, Coin coin) {
-		if (player == null || coin == null) {
+		if (player == null || coin == null || coin.IsCollected) {
 			return;
 		}
 		playersStatistics[player.PlayerGameId].coins += coin.Amount;
+		coin.Collect();
 		Destroy(coin.gameObject);
 	}
 

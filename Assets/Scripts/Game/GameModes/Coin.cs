@@ -12,6 +12,10 @@ public class Coin : MonoBehaviour {
 			return amount;
 		}
 	}
+	public bool IsCollected {
+		get;
+		private set;
+	}
 
 	public static Coin GetClosestCoinForPosition(Vector3 position) {
 		var minDistance = float.MaxValue;
@@ -26,6 +30,10 @@ public class Coin : MonoBehaviour {
 		}
 
 		return closestCoin;
+	}
+
+	public void Collect() {
+		IsCollected = true;
 	}
 
 	private void Awake() {
