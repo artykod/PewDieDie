@@ -21,16 +21,18 @@ public class GameCameraAction : MonoBehaviour {
 		Vector3 targetPoint = Vector3.zero;
 		float maxDistance = 0f;
 
+		targetPoint = new Vector3(10.45f, 0f, 10f); // field center lol
+
 		if (allActivePlayers.Count > 0) {
 			HashSet<HotPotatoPlayerBase> toRemove = new HashSet<HotPotatoPlayerBase>();
 			foreach (var player in allActivePlayers) {
 				if (player != null) {
-					targetPoint += player.transform.position;
+					//targetPoint += player.transform.position;
 				} else {
 					toRemove.Add(player);
 				}
 			}
-			targetPoint /= allActivePlayers.Count;
+			//targetPoint /= allActivePlayers.Count;
 
 			foreach (var player in toRemove) {
 				allActivePlayers.Remove(player);
