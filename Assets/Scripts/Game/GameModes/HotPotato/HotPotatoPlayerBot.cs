@@ -9,6 +9,8 @@ public class HotPotatoPlayerBot : HotPotatoPlayerBase {
 	private float changePositionCooldown = 0f;
 	private Vector3 targetOffset = Vector3.zero;
 	private Material overrideMaterial = null;
+	private Transform targetObject = null; // coin, etc.
+
 	private static Color[] randomColors = new Color[] {
 		//Color.black,
 		//Color.blue,
@@ -57,7 +59,19 @@ public class HotPotatoPlayerBot : HotPotatoPlayerBase {
 	}
 
 	private void ApplyRandomTarget() {
-		targetPosition = new Vector3(Random.Range(-10f, 32f), 0f, Random.Range(0f, 20f));
+		if (targetObject == null) {
+			var closestCoin = Coin.GetClosestCoinForPosition(transform.position);
+			if (closestCoin != null) {
+				targetObject = closestCoin.transform;
+			}
+		}
+
+		if (targetObject == null) {
+			targetPosition = new Vector3(Random.Range(-10f, 32f), 0f, Random.Range(0f, 20f));
+		} else {
+			targetPosition = targetObject.position;
+			targetPosition.y = 0f;
+		}
 	}
 
 	protected override void Update() {
