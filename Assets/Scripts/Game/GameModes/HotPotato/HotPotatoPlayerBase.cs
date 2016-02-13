@@ -79,7 +79,7 @@ public class HotPotatoPlayerBase : MonoBehaviour {
 	private float beatedTime = 0f;
 
 	public void BeatedByOtherPlayer(HotPotatoPlayerBase otherPlayer) {
-		beatedTime = 1f;
+		beatedTime = 0.5f;
 	}
 
 	protected virtual void Awake() {
