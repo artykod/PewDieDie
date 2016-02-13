@@ -47,7 +47,7 @@ public class GameCameraAction : MonoBehaviour {
 			}
 		}
 
-		maxDistance = maxDistance - 10f;
+		maxDistance = maxDistance - 15f;
 
 		var direction = (targetPoint - initialPosition).normalized;
 		var targetRotation = Quaternion.LookRotation(direction);
