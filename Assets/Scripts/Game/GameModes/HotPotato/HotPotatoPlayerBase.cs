@@ -62,6 +62,7 @@ public class HotPotatoPlayerBase : MonoBehaviour {
 	}
 
 	public event System.Action<HotPotatoPlayerBase> OnDoAction = delegate { };
+	public event System.Action<HotPotatoPlayerBase, Coin> OnCoinCollected = delegate { };
 
 	[SerializeField]
 	private TextMesh textName = null;
@@ -121,12 +122,21 @@ public class HotPotatoPlayerBase : MonoBehaviour {
 	}
 
 	protected virtual void OnCollisionEnter(Collision collision) {
-
+		CheckCoinCollision(collision.gameObject);
 	}
 	protected virtual void OnCollisionStay(Collision collision) {
-
+		CheckCoinCollision(collision.gameObject);
 	}
 	protected virtual void OnCollisionExit(Collision collision) {
 
+	}
+
+	private void CheckCoinCollision(GameObject obj) {
+		if (obj != null) {
+			var coin = obj.GetComponent<Coin>();
+			if (coin != null) {
+				OnCoinCollected(this, coin);
+			}
+		}
 	}
 }

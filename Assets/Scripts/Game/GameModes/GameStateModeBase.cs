@@ -6,7 +6,7 @@ public abstract class GameStateModeBase : GameStateBase {
 
 	protected Bomb bomb = null;
 
-	public bool IsGameEnd {
+	public bool IsRoundEnd {
 		get;
 		protected set;
 	}
@@ -20,6 +20,10 @@ public abstract class GameStateModeBase : GameStateBase {
 
 	public override void Deactivate() {
 		
+	}
+
+	protected virtual void Update() {
+
 	}
 
 	protected virtual void OnBombReachedTarget(Bomb.Target target) {

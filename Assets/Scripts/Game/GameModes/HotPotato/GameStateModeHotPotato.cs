@@ -1,11 +1,13 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 
 public class GameStateModeHotPotato : GameStateModeBase {
 	public class PlayerStatistics {
 		public HotPotatoPlayerBase player = null;
-		public int deaths = 0;
+		public int points = 0;
+		public int coins = 0;
 	}
 
 	[SerializeField]
@@ -13,12 +15,15 @@ public class GameStateModeHotPotato : GameStateModeBase {
 	[SerializeField]
 	private HotPotatoPlayerBot playerBotPrefab = null;
 	[SerializeField]
+	private Coin coinPrefab = null;
+	[SerializeField]
 	private UIGameTextStatistics uiStatText = null;
 
 	private HotPotatoPlayerBase[] players = null;
+	private float dropCoinCooldown = 1f;
 
-	private static int playersCount = 3;
-	private static int gamesCount = 0;
+	private static int playersCount = 4;
+	private static int roundsCount = 0;
 
 	private static Dictionary<int, PlayerStatistics> playersStatistics = new Dictionary<int, PlayerStatistics>();
 
@@ -50,6 +55,7 @@ public class GameStateModeHotPotato : GameStateModeBase {
 
 		foreach (var i in players) {
 			i.OnDoAction += OnPlayerDoAction;
+			i.OnCoinCollected += OnCoinCollectedByPlayer;
 			i.transform.position = new Vector3(Random.Range(0f, 25f), 1.25f, Random.Range(0f, 20f));
 
 			if (!playersStatistics.ContainsKey(i.PlayerGameId)) {
@@ -60,8 +66,16 @@ public class GameStateModeHotPotato : GameStateModeBase {
 
 		ThrowBombToRandomPlayer();
 
-		uiStatText.ShowInGameUI();
-		RefreshStatisticsUI();
+		uiStatText.SwitchToGameUI();
+		RefreshInGameStats();
+	}
+
+	private void OnCoinCollectedByPlayer(HotPotatoPlayerBase player, Coin coin) {
+		if (player == null || coin == null) {
+			return;
+		}
+		playersStatistics[player.PlayerGameId].coins += coin.Amount;
+		Destroy(coin.gameObject);
 	}
 
 	public override void Deactivate() {
@@ -70,16 +84,58 @@ public class GameStateModeHotPotato : GameStateModeBase {
 	}
 
 	public static void ClearStatistics() {
-		gamesCount = 0;
+		roundsCount = 0;
 		playersStatistics.Clear();
 	}
 
-	protected void RefreshStatisticsUI() {
-		string text = "ROUND #" + (gamesCount + 1) + "\nDEATHS:  ";
-		foreach (var i in playersStatistics) {
-			text += string.Format("{0}-{1}  ", i.Value.player.PlayerName, i.Value.deaths);
+	protected override void Update() {
+		base.Update();
+
+		if (dropCoinCooldown > 0f) {
+			dropCoinCooldown -= Time.deltaTime;
 		}
-		uiStatText.UpdateStatisticsText(text);
+
+		if (dropCoinCooldown < 0f) {
+			dropCoinCooldown = 3f;
+
+			StartCoroutine(DropCoinAtFreePosition());
+		}
+	}
+
+	private IEnumerator DropCoinAtFreePosition() {
+		var coin = Instantiate(coinPrefab);
+		var noObstaclesAtBottom = false;
+		var maxTries = 3;
+
+		coin.transform.SetParent(transform);
+
+		do {
+			coin.transform.position = new Vector3(Random.Range(0f, 25f), 15f, Random.Range(0f, 20f));
+
+			var hits = Physics.RaycastAll(new Ray(coin.transform.position, Vector3.down));
+			noObstaclesAtBottom = true;
+			foreach (var i in hits) {
+				if (i.collider.gameObject.tag == "Obstacle") {
+					noObstaclesAtBottom = false;
+					break;
+				}
+			}
+
+			maxTries--;
+			if (maxTries < 0) {
+				maxTries = 3;
+				yield return null;
+			}
+
+		} while (!noObstaclesAtBottom);
+	}
+
+	protected void RefreshInGameStats() {
+		string text = "ROUND #" + (roundsCount + 1) + "\nDEATHS:  ";
+		foreach (var i in playersStatistics) {
+			text += string.Format("{0}-{1}  ", i.Value.player.PlayerName, i.Value.points);
+		}
+		uiStatText.RefreshInGameStats(text);
 	}
 
 	protected override void OnBombReachedTarget(Bomb.Target target) {
@@ -97,26 +153,25 @@ public class GameStateModeHotPotato : GameStateModeBase {
 		var playerWithBomb = FindPlayerWithBomb();
 		if (playerWithBomb != null) {
 			playerWithBomb.IsDead = true;
-			playersStatistics[playerWithBomb.PlayerGameId].deaths++;
-
-			gamesCount++;
-			if (gamesCount < 5) {
-				StartCoroutine(RestartAfter(1f));
-			} else {
-				uiStatText.ShowResultsUI();
-				string results = "RESULTS:\n\n";
-				foreach (var i in playersStatistics) {
-					results += string.Format("{0} = {1}\n", i.Value.player.PlayerName, i.Value.deaths);
+			foreach (var p in playersStatistics) {
+				if (playerWithBomb.PlayerGameId != p.Key) {
+					p.Value.points++;
 				}
-				uiStatText.UpdateResultsText(results);
+			}
+
+			roundsCount++;
+			if (roundsCount < 5) {
+				StartCoroutine(StartNewRound());
+			} else {
+				StartCoroutine(AllRoundsDone());
 			}
 		} else {
 			Debug.Log("On boom bomb has no player target!");
 		}
 
-		RefreshStatisticsUI();
+		RefreshInGameStats();
 
-		IsGameEnd = true;
+		IsRoundEnd = true;
 	}
 
 	private void OnPlayerDoAction(HotPotatoPlayerBase player) {
@@ -163,8 +218,16 @@ public class GameStateModeHotPotato : GameStateModeBase {
 		return null;
 	}
 
-	private IEnumerator RestartAfter(float delay) {
-		yield return new WaitForSeconds(delay);
+	private IEnumerator StartNewRound() {
+		yield return new WaitForSeconds(1f);
+
 		GameStateMachine.Instance.GoToState(Type);
+	}
+
+	private IEnumerator AllRoundsDone() {
+		yield return new WaitForSeconds(1f);
+
+		uiStatText.SwitchToResultUI();
+		uiStatText.RefreshResultsStats(playersStatistics.Values.ToArray());
 	}
 }
