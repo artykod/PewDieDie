@@ -21,7 +21,7 @@ public class HotPotatoPlayerBot : HotPotatoPlayerBase {
 
 	public override string PlayerName {
 		get {
-			return "Bot #" + PlayerGameId;
+			return "Bot " + PlayerGameId;
 		}
 	}
 

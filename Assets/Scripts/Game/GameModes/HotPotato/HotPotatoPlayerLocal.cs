@@ -15,7 +15,7 @@ public class HotPotatoPlayerLocal : HotPotatoPlayerBase {
 
 	public override string PlayerName {
 		get {
-			return "Player #" + PlayerGameId;
+			return "Player " + PlayerGameId;
 		}
 	}
 
