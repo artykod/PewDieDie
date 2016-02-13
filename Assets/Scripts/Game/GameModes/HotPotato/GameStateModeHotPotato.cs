@@ -22,7 +22,7 @@ public class GameStateModeHotPotato : GameStateModeBase {
 	private HotPotatoPlayerBase[] players = null;
 	private float dropCoinCooldown = 1f;
 
-	private static int playersCount = 4;
+	private static int playersCount = 3;
 	private static int roundsCount = 0;
 
 	private static Dictionary<int, PlayerStatistics> playersStatistics = new Dictionary<int, PlayerStatistics>();
