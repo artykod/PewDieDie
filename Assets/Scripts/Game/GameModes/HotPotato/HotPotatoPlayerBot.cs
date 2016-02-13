@@ -5,6 +5,7 @@ public class HotPotatoPlayerBot : HotPotatoPlayerBase {
 	private Vector3 targetPosition = Vector3.zero;
 	private float doActionCooldown = 0f;
 	private float throwBombCooldown = 0f;
+	private float beatEnemyCooldown = 0f;
 	private float targetOffsetCooldown = 0f;
 	private float changePositionCooldown = 0f;
 	private Vector3 targetOffset = Vector3.zero;
@@ -81,6 +82,19 @@ public class HotPotatoPlayerBot : HotPotatoPlayerBase {
 			return;
 		}
 
+		HotPotatoPlayerBase closestPlayer = null;
+		float minDistance = float.MaxValue;
+
+		foreach (var i in allPlayers) {
+			if (i != this && !i.IsDead) {
+				float distance = (i.transform.position - transform.position).magnitude;
+				if (distance < minDistance) {
+					minDistance = distance;
+					closestPlayer = i;
+				}
+			}
+		}
+
 		if (!HasBomb || doActionCooldown > 0f) {
 			if (playerWithBomb != null) {
 				if ((transform.position - playerWithBomb.transform.position).magnitude < 10f || changePositionCooldown < 0f) {
@@ -95,21 +109,13 @@ public class HotPotatoPlayerBot : HotPotatoPlayerBase {
 					changePositionCooldown -= Time.deltaTime;
 					Speed = 0f;
 				}
-			}
-		} else {
-			HotPotatoPlayerBase closestPlayer = null;
-			float minDistance = float.MaxValue;
 
-			foreach (var i in allPlayers) {
-				if (i != this && !i.IsDead) {
-					float distance = (i.transform.position - transform.position).magnitude;
-					if (distance < minDistance) {
-						minDistance = distance;
-						closestPlayer = i;
-					}
+				if (closestPlayer != null && minDistance < 2f && beatEnemyCooldown <= 0f) {
+					DoAction();
+					beatEnemyCooldown = Random.Range(0.5f, 2f);
 				}
 			}
-
+		} else {
 			if (closestPlayer != null) {
 				targetPosition = closestPlayer.transform.position;
 
@@ -135,6 +141,9 @@ public class HotPotatoPlayerBot : HotPotatoPlayerBase {
 
 		if (doActionCooldown > 0f) {
 			doActionCooldown -= Time.deltaTime;
+		}
+		if (beatEnemyCooldown > 0f) {
+			beatEnemyCooldown -= Time.deltaTime;
 		}
 		
 		Speed = 10f;

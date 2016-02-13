@@ -60,6 +60,11 @@ public class HotPotatoPlayerBase : MonoBehaviour {
 		get;
 		protected set;
 	}
+	public bool HasDebuff {
+		get {
+			return beatedTime > 0f;
+		}
+	}
 
 	public event System.Action<HotPotatoPlayerBase> OnDoAction = delegate { };
 	public event System.Action<HotPotatoPlayerBase, Coin> OnCoinCollected = delegate { };
@@ -71,6 +76,11 @@ public class HotPotatoPlayerBase : MonoBehaviour {
 	protected static HotPotatoPlayerBase playerWithBomb = null;
 
 	private bool hasBomb = false;
+	private float beatedTime = 0f;
+
+	public void BeatedByOtherPlayer(HotPotatoPlayerBase otherPlayer) {
+		beatedTime = 1f;
+	}
 
 	protected virtual void Awake() {
 		transform = base.transform;
@@ -80,6 +90,8 @@ public class HotPotatoPlayerBase : MonoBehaviour {
 		PlayerGameId = allPlayers.Count;
 
 		textName.text = string.Format("<b>{0}</b>", PlayerName);
+
+		SpeedMultiplier = 1f;
 	}
 
 	protected virtual void Start() {
@@ -97,27 +109,42 @@ public class HotPotatoPlayerBase : MonoBehaviour {
 		}
 		
 		Quaternion rotation = Quaternion.Euler(0f, DirectionInDegrees, 0f);
-		Vector3 position = transform.position + Direction * (HasBomb ? Speed * 1.25f : Speed) * Time.fixedDeltaTime;
+		Vector3 position = transform.position + Direction * (HasBomb ? Speed * 1.25f : Speed) * SpeedMultiplier * Time.fixedDeltaTime;
 		
 		rigidbody.MovePosition(position);
 		rigidbody.MoveRotation(Quaternion.Lerp(transform.rotation, rotation, 0.175f));
 	}
 
 	protected virtual void Update() {
+		SpeedMultiplier = 1f;
 
+		// players is beated
+		if (beatedTime > 0f) {
+			if (!hasBomb) {
+				beatedTime -= Time.deltaTime;
+				SpeedMultiplier *= 0.25f;
+			} else {
+				beatedTime = 0f;
+			}
+		}
 	}
 
-	protected void DoAction() {
-		if (IsDead) {
-			return;
+	protected virtual bool DoAction() {
+		if (IsDead || HasDebuff) {
+			return false;
 		}
 
 		OnDoAction(this);
+
+		return true;
 	}
 
 	protected virtual void OnHasBombChanged(bool hasBombNow) {
 		if (hasBombNow) {
 			playerWithBomb = this;
+
+			// reset debuff
+			beatedTime = 0f;
 		}
 	}
 

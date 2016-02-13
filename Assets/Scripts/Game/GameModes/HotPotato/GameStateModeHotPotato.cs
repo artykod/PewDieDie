@@ -175,31 +175,43 @@ public class GameStateModeHotPotato : GameStateModeBase {
 	}
 
 	private void OnPlayerDoAction(HotPotatoPlayerBase player) {
-		if (player == FindPlayerWithBomb()) {
-			HotPotatoPlayerBase targetPlayer = null;
-			float minDistance = float.MaxValue;
+		HotPotatoPlayerBase targetPlayer = null;
+		float minDistance = float.MaxValue;
 
-			foreach (var anotherPlayer in players) {
-				if (player != anotherPlayer) {
-					Vector3 direction = anotherPlayer.transform.position - player.transform.position;
-					Vector2 toAnother = new Vector2(direction.x, direction.z).normalized;
-					Vector2 fromSelf = new Vector2(player.Direction.x, player.Direction.z).normalized;
+		foreach (var anotherPlayer in players) {
+			if (player != anotherPlayer && !anotherPlayer.HasProtection) {
+				Vector3 direction = anotherPlayer.transform.position - player.transform.position;
+				Vector2 toAnother = new Vector2(direction.x, direction.z).normalized;
+				Vector2 fromSelf = new Vector2(player.Direction.x, player.Direction.z).normalized;
 
-					if (Mathf.Abs(Vector2.Angle(toAnother, fromSelf)) < 60f) {
-						float distance = direction.magnitude;
-						if (minDistance > distance) {
-							minDistance = distance;
-							targetPlayer = anotherPlayer;
-						}
+				if (Mathf.Abs(Vector2.Angle(toAnother, fromSelf)) < 60f) {
+					float distance = direction.magnitude;
+					if (minDistance > distance) {
+						minDistance = distance;
+						targetPlayer = anotherPlayer;
 					}
 				}
 			}
+		}
 
-			if (targetPlayer != null && minDistance < 8f) {
-				bomb.SetNewTarget(new Bomb.Target {
-					targetObject = targetPlayer.transform,
-					targetOffest = new Vector3(0f, 1f, 0f),
-				});
+		if (targetPlayer != null) {
+			//
+			// throw bomb to enemy
+			//
+			if (player == FindPlayerWithBomb()) {
+				if (minDistance < 8f) {
+					bomb.SetNewTarget(new Bomb.Target {
+						targetObject = targetPlayer.transform,
+						targetOffest = new Vector3(0f, 1f, 0f),
+					});
+				}
+			} else {
+				//
+				// beat enemy
+				//
+				if (minDistance < 2f) {
+					targetPlayer.BeatedByOtherPlayer(player);
+				}
 			}
 		}
 	}
