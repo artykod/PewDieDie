@@ -3,10 +3,10 @@
 public static class DebugSettings {
 	public static bool IsDebugEnabled {
 		get {
-			return Debug.logger.logEnabled;
+			return Debug.unityLogger.logEnabled;
 		}
 		set {
-			Debug.logger.logEnabled = value;
+			Debug.unityLogger.logEnabled = value;
 		}
 	}
 }
